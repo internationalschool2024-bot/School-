@@ -225,6 +225,37 @@ export default function App() {
     });
   };
 
+  // Full System Restore from Backup
+  const handleRestoreAllData = (backup: any) => {
+    if (backup.students && Array.isArray(backup.students)) {
+      setStudents(backup.students);
+    }
+    if (backup.teachers && Array.isArray(backup.teachers)) {
+      setTeachers(backup.teachers);
+    }
+    if (backup.reportCards && Array.isArray(backup.reportCards)) {
+      setReportCards(backup.reportCards);
+    }
+    if (backup.attendance && Array.isArray(backup.attendance)) {
+      setAttendanceRecords(backup.attendance);
+    }
+    if (backup.followups && Array.isArray(backup.followups)) {
+      setFollowUpReports(backup.followups);
+    }
+    if (backup.smsLogs && Array.isArray(backup.smsLogs)) {
+      setSmsLogs(backup.smsLogs);
+    }
+    if (backup.schedule && Array.isArray(backup.schedule)) {
+      setSchedule(backup.schedule);
+    }
+    if (backup.announcements && Array.isArray(backup.announcements)) {
+      setAnnouncements(backup.announcements);
+    }
+    if (backup.schoolInfo && typeof backup.schoolInfo === 'object') {
+      setCustomSchoolInfo(backup.schoolInfo);
+    }
+  };
+
   const handleDeleteStudent = (id: string) => {
     setStudents((prev) => prev.filter((s) => s.id !== id));
   };
@@ -693,6 +724,7 @@ export default function App() {
           {activeTab === 'students' && (
             <StudentManager
               students={students}
+              schoolInfo={customSchoolInfo}
               onSaveStudent={handleSaveStudent}
               onDeleteStudent={handleDeleteStudent}
               onPrintDocument={(st, docType) => {
@@ -800,6 +832,7 @@ export default function App() {
           {activeTab === 'settings' && (
             <SettingsManager
               onSaveSchoolInfo={(newInfo) => setCustomSchoolInfo(newInfo)}
+              onRestoreAllData={handleRestoreAllData}
             />
           )}
 

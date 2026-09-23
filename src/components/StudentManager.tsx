@@ -23,15 +23,21 @@ import {
   BookOpen,
   Shirt,
   Link as LinkIcon,
-  ExternalLink
+  ExternalLink,
+  FileSpreadsheet,
+  CheckCircle2,
+  ChevronDown
 } from 'lucide-react';
 import { Student, GradeLevel } from '../types';
-import { GRADE_LEVELS } from '../data/mockData';
+import { GRADE_LEVELS, SCHOOL_INFO } from '../data/mockData';
 import { formatCurrency, formatArabicDate, exportToCSV, calculateStudentBalance } from '../utils/helpers';
 import { buildPortalUrl, copyToClipboard } from '../utils/urlHelper';
+import { ExportStudentsModal } from './ExportStudentsModal';
+import { exportStudentsToExcel } from '../utils/exportHelpers';
 
 interface StudentManagerProps {
   students: Student[];
+  schoolInfo?: typeof SCHOOL_INFO;
   onSaveStudent: (student: Student) => void;
   onDeleteStudent: (studentId: string) => void;
   onPrintDocument: (student: Student, docType: 'registration' | 'check' | 'reportCard' | 'followup') => void;
@@ -50,15 +56,20 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   initialOpenNewModal = false,
   onOpenPortalLinks,
   onOpenShareParentLink,
+  schoolInfo,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedSection, setSelectedSection] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   
-  // Modal state
+  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(initialOpenNewModal);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportToast, setExportToast] = useState<string | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+
+  const activeSchool = schoolInfo || SCHOOL_INFO;
 
   // New Student default state
   const createEmptyStudent = (): Student => {
@@ -176,29 +187,58 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     });
   }, [students, searchTerm, selectedGrade, selectedSection, paymentFilter]);
 
-  const handleExportCSV = () => {
-    const exportData = filteredStudents.map((s) => ({
-      'رقم الطالب': s.id,
-      'الرقم الوطني': s.idcard,
-      'الاسم الكامل': `${s.firstName} ${s.fatherName} ${s.grandFatherName} ${s.lastName}`,
-      'الأم': s.motherName,
-      'الجنس': s.gender,
-      'الصف الحالي': s.currentGrade,
-      'الشعبة': s.section,
-      'الفوج': s.regiment,
-      'ولي الأمر': s.guardianName,
-      'هاتف ولي الأمر': s.guardianPhone,
-      'إجمالي المبلغ ($)': s.totalAmount,
-      'الدفعة الأولى': s.firstPayment,
-      'الدفعة الثانية': s.secondPayment,
-      'المتبقي ($)': s.remainingAmount,
-    }));
-    exportToCSV(`سجل_طلاب_المدرسة_الدولية_${new Date().toISOString().split('T')[0]}.csv`, exportData);
+  const hasActiveFilters = Boolean(
+    searchTerm.trim() !== '' ||
+    selectedGrade !== 'all' ||
+    selectedSection !== 'all' ||
+    paymentFilter !== 'all'
+  );
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedGrade('all');
+    setSelectedSection('all');
+    setPaymentFilter('all');
+  };
+
+  const handleQuickExportCurrentExcel = () => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    const gradePart = selectedGrade !== 'all' ? `_${selectedGrade.replace(/\s+/g, '_')}` : '';
+    const filename = `كشف_الطلاب${gradePart}_${dateStr}.xls`;
+    
+    const res = exportStudentsToExcel(
+      filteredStudents,
+      'comprehensive',
+      activeSchool.name,
+      activeSchool.academicYear,
+      filename
+    );
+
+    if (res.success) {
+      setExportToast(`تم تصدير كشف الطلاب بنجاح إلى ملف Excel: ${filename} (${res.count} طالب)`);
+      setTimeout(() => setExportToast(null), 5000);
+    }
   };
 
   return (
     <div className="space-y-6">
       
+      {/* Toast Notification */}
+      {exportToast && (
+        <div className="bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between gap-3 animate-in slide-in-from-top duration-200">
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <CheckCircle2 className="w-5 h-5 text-emerald-200 shrink-0" />
+            <span>{exportToast}</span>
+          </div>
+          <button 
+            onClick={() => setExportToast(null)}
+            className="p-1 rounded-lg hover:bg-emerald-700 text-white/80 hover:text-white transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header & Controls Bar */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -208,9 +248,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
               <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
                 {filteredStudents.length} طالب
               </span>
+              {hasActiveFilters && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">
+                  (تصفية نشطة)
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              إدخال وتعديل استمارات التسجيل، طباعة الشيكات والوثائق الرسمية، وإدارة شؤون الطلاب.
+              إدخال وتعديل استمارات التسجيل، تصدير الكشوفات لـ Excel/CSV، وإدارة شؤون الطلاب.
             </p>
           </div>
 
@@ -235,12 +280,24 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
               </button>
             )}
 
+            {/* Comprehensive Export Modal Trigger */}
             <button
-              onClick={handleExportCSV}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
+              onClick={() => setIsExportModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              title="تصدير كشوفات مخصصة أو نسخة احتياطية شاملة إلى Excel أو CSV"
             >
-              <Download className="w-4 h-4" />
-              <span>تصدير Excel/CSV</span>
+              <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+              <span>تصدير كشوفات الطلاب (Excel / CSV)</span>
+            </button>
+
+            {/* Quick 1-Click Excel Export for current view */}
+            <button
+              onClick={handleQuickExportCurrentExcel}
+              className="inline-flex items-center gap-1 px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
+              title="تحميل سريع ومباشر للكشف المعروض حالياً كملف Excel"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">تحميل سريع</span>
             </button>
           </div>
         </div>
@@ -304,6 +361,33 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
         </div>
       </div>
+
+      {/* Active Filter Banner with Direct Export Action */}
+      {hasActiveFilters && (
+        <div className="bg-blue-50/80 border border-blue-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-blue-950">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+            <span className="font-bold">
+              تصفية نشطة: تم العثور على {filteredStudents.length} طالب من إجمالي {students.length} طالب مسجل.
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleQuickExportCurrentExcel}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>تصدير هذا الكشف المصفى ({filteredStudents.length})</span>
+            </button>
+            <button
+              onClick={resetFilters}
+              className="text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+            >
+              إلغاء التصفية
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Students Data Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
@@ -1080,6 +1164,18 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Export Students Modal */}
+      <ExportStudentsModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        filteredStudents={filteredStudents}
+        allStudents={students}
+        currentGradeFilter={selectedGrade}
+        currentSectionFilter={selectedSection}
+        currentSearchTerm={searchTerm}
+        schoolInfo={activeSchool}
+      />
 
     </div>
   );

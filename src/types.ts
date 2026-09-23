@@ -182,3 +182,39 @@ export interface LessonAssignment {
   teacherName: string;
   status: 'متاح' | 'منتهي';
 }
+
+export interface WeeklyScheduleItem {
+  id: string;
+  day: 'الأحد' | 'الإثنين' | 'الثلاثاء' | 'الأربعاء' | 'الخميس';
+  periodNumber: number; // 1 to 6
+  timeSlot: string; // '08:00 - 08:45'
+  subject: string; // 'اللغة العربية'
+  grade: string; // 'الأول المتوسط' or 'الصف الخامس الابتدائي'
+  section: string; // 'أ', 'ب'
+  teacherName: string; // 'أ. علي الحسيني'
+  room?: string; // 'قاعة 101'
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  category: 'امتحانات' | 'إداري' | 'اجتماعات' | 'كادر' | 'مالي';
+  date: string;
+  iconColor: 'blue' | 'emerald' | 'red' | 'purple' | 'amber';
+  priority?: 'عالي' | 'متوسط' | 'عادي';
+  content?: string;
+  actionTab?: string;
+}
+
+export type TabType = 
+  | 'dashboard' 
+  | 'students' 
+  | 'teachers' 
+  | 'schedule' 
+  | 'finances' 
+  | 'grades' 
+  | 'followup' 
+  | 'sms' 
+  | 'portal' 
+  | 'settings';
+

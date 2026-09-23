@@ -17,16 +17,8 @@ import {
 import { SCHOOL_INFO } from '../data/mockData';
 import { SchoolLogo } from './SchoolLogo';
 
-export type TabType = 
-  | 'dashboard' 
-  | 'students' 
-  | 'teachers' 
-  | 'finances' 
-  | 'grades' 
-  | 'followup' 
-  | 'sms' 
-  | 'portal';
-
+import { TabType } from '../types';
+export type { TabType };
 export type NavTab = TabType;
 
 interface NavbarProps {

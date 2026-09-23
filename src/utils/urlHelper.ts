@@ -33,7 +33,18 @@ export function getRouteFromUrl(): ParsedRoute {
       return { tab: 'portal', studentId };
     }
 
-    const validTabs: TabType[] = ['dashboard', 'students', 'teachers', 'finances', 'grades', 'followup', 'sms', 'portal'];
+    const validTabs: TabType[] = [
+      'dashboard', 
+      'students', 
+      'teachers', 
+      'schedule', 
+      'finances', 
+      'grades', 
+      'followup', 
+      'sms', 
+      'portal', 
+      'settings'
+    ];
     if (tabParam && validTabs.includes(tabParam as TabType)) {
       return { tab: tabParam as TabType, studentId };
     }

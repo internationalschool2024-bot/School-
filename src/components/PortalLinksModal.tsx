@@ -16,7 +16,9 @@ import {
   Search,
   Send,
   Sparkles,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Calendar,
+  Settings
 } from 'lucide-react';
 import { Student } from '../types';
 import { TabType } from './Navbar';
@@ -140,6 +142,22 @@ export const PortalLinksModal: React.FC<PortalLinksModalProps> = ({
       icon: BookOpen,
       color: 'bg-sky-600',
       url: buildPortalUrl('teachers'),
+    },
+    {
+      id: 'schedule' as TabType,
+      title: 'الجدول الأسبوعي ومواعيد الدروس',
+      desc: 'توزيع الحصص المدرسية، القاعات، وأيام الدوام الأسبوعي',
+      icon: Calendar,
+      color: 'bg-red-600',
+      url: buildPortalUrl('schedule'),
+    },
+    {
+      id: 'settings' as TabType,
+      title: 'إعدادات النظام والنسخ الاحتياطي',
+      desc: 'تخصيص الهوية والوزارة والمديرية والنسخ الاحتياطي للبيانات',
+      icon: Settings,
+      color: 'bg-slate-600',
+      url: buildPortalUrl('settings'),
     },
   ];
 

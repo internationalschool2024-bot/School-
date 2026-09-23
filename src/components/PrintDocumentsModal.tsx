@@ -27,6 +27,7 @@ interface PrintDocumentsModalProps {
   teacher?: Teacher | null;
   reportCard?: StudentReportCard | null;
   followUpReport?: PeriodicFollowUp | null;
+  schoolInfo?: typeof SCHOOL_INFO;
   onClose: () => void;
 }
 
@@ -36,8 +37,10 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
   teacher,
   reportCard,
   followUpReport,
+  schoolInfo,
   onClose,
 }) => {
+  const activeSchool = schoolInfo || SCHOOL_INFO;
 
   const handlePrint = () => {
     window.print();
@@ -87,20 +90,26 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
               {/* Header */}
               <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
                 <div className="text-right space-y-1">
-                  <div className="font-bold text-sm">{SCHOOL_INFO.ministry}</div>
-                  <div className="font-bold text-sm">{SCHOOL_INFO.directorate}</div>
-                  <div className="font-black text-base text-purple-900">{SCHOOL_INFO.name}</div>
+                  <div className="font-bold text-sm">{activeSchool.ministry}</div>
+                  <div className="font-bold text-sm">{activeSchool.directorate}</div>
+                  <div className="font-black text-base text-purple-900">{activeSchool.name}</div>
                   <div className="text-[10px] text-slate-500">رياض أطفال - إبتدائي - إعدادي - ثانوي</div>
                 </div>
 
                 <div className="text-center flex flex-col items-center">
-                  <SchoolLogo variant="icon" size="sm" className="mb-1" />
+                  <SchoolLogo 
+                    variant="icon" 
+                    size="sm" 
+                    className="mb-1" 
+                    customLogoUrl={activeSchool.logoUrl} 
+                    schoolName={activeSchool.name} 
+                  />
                   <div className="text-xs font-serif text-slate-600 mb-1">بسم الله الرحمن الرحيم</div>
                   <h1 className="text-lg font-black bg-slate-100 border border-slate-400 px-4 py-1 rounded">
                     استمارة تسجيل طالب جديد
                   </h1>
                   <div className="text-xs font-bold text-slate-600 mt-1">
-                    العام الدراسي: {SCHOOL_INFO.academicYear}
+                    العام الدراسي: {activeSchool.academicYear}
                   </div>
                 </div>
 
@@ -222,13 +231,18 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">منظم الاستمارة: {SCHOOL_INFO.documentOrganizedBy}</p>
+                  <p className="mb-8">منظم الاستمارة: {activeSchool.documentOrganizedBy}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">مدير المدرسة: {SCHOOL_INFO.principal}</p>
+                  <p className="mb-8">مدير المدرسة: {activeSchool.principal}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
+              </div>
+
+              {/* Developer Attribution */}
+              <div className="text-center pt-2 text-[10px] text-slate-400 font-mono border-t border-slate-200">
+                منظومة الإدارة المدرسية • برمجة المهندس محمود العبدالله (+963 939 841 552)
               </div>
 
             </div>
@@ -243,13 +257,19 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
               {/* Header */}
               <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
                 <div className="space-y-1">
-                  <div className="font-black text-sm">{SCHOOL_INFO.institution}</div>
-                  <div className="font-bold text-base text-purple-900">{SCHOOL_INFO.name}</div>
-                  <div className="text-xs text-slate-500">العام الدراسي {SCHOOL_INFO.academicYear}</div>
+                  <div className="font-black text-sm">{activeSchool.institution}</div>
+                  <div className="font-bold text-base text-purple-900">{activeSchool.name}</div>
+                  <div className="text-xs text-slate-500">العام الدراسي {activeSchool.academicYear}</div>
                 </div>
 
                 <div className="text-center flex flex-col items-center">
-                  <SchoolLogo variant="icon" size="sm" className="mb-1" />
+                  <SchoolLogo 
+                    variant="icon" 
+                    size="sm" 
+                    className="mb-1" 
+                    customLogoUrl={activeSchool.logoUrl} 
+                    schoolName={activeSchool.name} 
+                  />
                   <div className="text-xs font-serif text-slate-600 mb-1">بسم الله الرحمن الرحيم</div>
                   <h1 className="text-xl font-black bg-slate-100 border-2 border-slate-800 px-6 py-1.5 rounded-md shadow-xs">
                     شيك مالي وبيان رسوم الطالب
@@ -341,17 +361,22 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
               {/* Signatures from Image 4 */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-slate-800 text-center font-bold">
                 <div>
-                  <p className="mb-8">منظم الوثيقة: {SCHOOL_INFO.documentOrganizedBy}</p>
+                  <p className="mb-8">منظم الوثيقة: {activeSchool.documentOrganizedBy}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">المسؤول المالي: {SCHOOL_INFO.financialOfficer}</p>
+                  <p className="mb-8">المسؤول المالي: {activeSchool.financialOfficer}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">مدير المدرسة: {SCHOOL_INFO.principal}</p>
+                  <p className="mb-8">مدير المدرسة: {activeSchool.principal}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
+              </div>
+
+              {/* Developer Attribution */}
+              <div className="text-center pt-2 text-[10px] text-slate-400 font-mono border-t border-slate-200">
+                منظومة الإدارة المدرسية • برمجة المهندس محمود العبدالله (+963 939 841 552)
               </div>
 
             </div>
@@ -366,20 +391,26 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
               {/* Header */}
               <div className="flex justify-between items-start border-b-2 border-purple-900 pb-4">
                 <div className="space-y-1">
-                  <div className="font-bold">{SCHOOL_INFO.ministry}</div>
-                  <div className="font-bold">{SCHOOL_INFO.directorate}</div>
-                  <div className="font-black text-base text-purple-900">{SCHOOL_INFO.name}</div>
+                  <div className="font-bold">{activeSchool.ministry}</div>
+                  <div className="font-bold">{activeSchool.directorate}</div>
+                  <div className="font-black text-base text-purple-900">{activeSchool.name}</div>
                   <div className="text-[10px] text-purple-700 font-medium">International School</div>
                 </div>
 
                 <div className="text-center flex flex-col items-center">
-                  <SchoolLogo variant="icon" size="sm" className="mb-1" />
+                  <SchoolLogo 
+                    variant="icon" 
+                    size="sm" 
+                    className="mb-1" 
+                    customLogoUrl={activeSchool.logoUrl} 
+                    schoolName={activeSchool.name} 
+                  />
                   <div className="text-xs font-serif text-slate-600 mb-1">بسم الله الرحمن الرحيم</div>
                   <h1 className="text-xl font-black bg-purple-100 border border-purple-900 text-purple-950 px-6 py-1.5 rounded shadow-xs">
                     كشف درجات وجلاء مدرسي رسمي
                   </h1>
                   <div className="text-xs font-bold text-slate-700 mt-1">
-                    {reportCard?.term || 'الفصل الدراسي الأول'} • العام {SCHOOL_INFO.academicYear}
+                    {reportCard?.term || 'الفصل الدراسي الأول'} • العام {activeSchool.academicYear}
                   </div>
                 </div>
 
@@ -496,12 +527,18 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
             <div className="space-y-5 text-xs text-slate-900 border-2 border-slate-800 p-8 rounded-lg">
               <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
                 <div>
-                  <div className="font-bold">{SCHOOL_INFO.directorate}</div>
-                  <div className="font-black text-base text-purple-900">{SCHOOL_INFO.name}</div>
+                  <div className="font-bold">{activeSchool.directorate}</div>
+                  <div className="font-black text-base text-purple-900">{activeSchool.name}</div>
                   <div className="text-[10px] text-slate-500">سجل الكادر التعليمي</div>
                 </div>
                 <div className="text-center flex flex-col items-center">
-                  <SchoolLogo variant="icon" size="sm" className="mb-1" />
+                  <SchoolLogo 
+                    variant="icon" 
+                    size="sm" 
+                    className="mb-1" 
+                    customLogoUrl={activeSchool.logoUrl} 
+                    schoolName={activeSchool.name} 
+                  />
                   <h1 className="text-lg font-black bg-slate-100 border border-slate-400 px-6 py-1 rounded">
                     بطاقة وسجل بيانات المعلم
                   </h1>
@@ -557,9 +594,14 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">مدير المدرسة: {SCHOOL_INFO.principal}</p>
+                  <p className="mb-8">مدير المدرسة: {activeSchool.principal}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
+              </div>
+
+              {/* Developer Attribution */}
+              <div className="text-center pt-2 text-[10px] text-slate-400 font-mono border-t border-slate-200">
+                منظومة الإدارة المدرسية • برمجة المهندس محمود العبدالله (+963 939 841 552)
               </div>
             </div>
           )}
@@ -571,12 +613,18 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
             <div className="space-y-6 text-xs text-slate-900 border-2 border-slate-800 p-8 rounded-lg">
               <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
                 <div>
-                  <div className="font-bold">{SCHOOL_INFO.directorate}</div>
-                  <div className="font-black text-base text-purple-900">{SCHOOL_INFO.name}</div>
+                  <div className="font-bold">{activeSchool.directorate}</div>
+                  <div className="font-black text-base text-purple-900">{activeSchool.name}</div>
                   <div className="text-[10px] text-slate-500">المتابعة الميدانية والتربوية</div>
                 </div>
                 <div className="text-center flex flex-col items-center">
-                  <SchoolLogo variant="icon" size="sm" className="mb-1" />
+                  <SchoolLogo 
+                    variant="icon" 
+                    size="sm" 
+                    className="mb-1" 
+                    customLogoUrl={activeSchool.logoUrl} 
+                    schoolName={activeSchool.name} 
+                  />
                   <h1 className="text-lg font-black bg-slate-100 border border-slate-400 px-6 py-1 rounded">
                     تقرير المتابعة الدورية والأداء السلوكي
                   </h1>
@@ -625,9 +673,14 @@ export const PrintDocumentsModal: React.FC<PrintDocumentsModalProps> = ({
                   <p className="text-slate-400">..............................</p>
                 </div>
                 <div>
-                  <p className="mb-8">مدير المدرسة: {SCHOOL_INFO.principal}</p>
+                  <p className="mb-8">مدير المدرسة: {activeSchool.principal}</p>
                   <p className="text-slate-400">..............................</p>
                 </div>
+              </div>
+
+              {/* Developer Attribution */}
+              <div className="text-center pt-2 text-[10px] text-slate-400 font-mono border-t border-slate-200">
+                منظومة الإدارة المدرسية • برمجة المهندس محمود العبدالله (+963 939 841 552)
               </div>
             </div>
           )}

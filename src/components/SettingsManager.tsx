@@ -131,6 +131,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
       const smsLogs = JSON.parse(localStorage.getItem('school_sms_logs') || '[]');
       const schedule = JSON.parse(localStorage.getItem('school_schedule') || '[]');
       const announcements = JSON.parse(localStorage.getItem('school_announcements') || '[]');
+      const vehicles = JSON.parse(localStorage.getItem('school_transport_vehicles') || '[]');
       const schoolCustom = JSON.parse(localStorage.getItem('school_custom_info') || JSON.stringify(formData));
 
       const backupPayload = {
@@ -152,6 +153,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           smsLogs: smsLogs.length,
           schedule: schedule.length,
           announcements: announcements.length,
+          vehicles: vehicles.length,
           totalLocalStorageKeys: Object.keys(localStorageDump).length,
         },
         data: {
@@ -163,6 +165,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           smsLogs,
           schedule,
           announcements,
+          vehicles,
           schoolInfo: schoolCustom,
         },
         // Complete mirror of every single key in localStorage

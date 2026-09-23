@@ -462,9 +462,12 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                           </span>
                         )}
                         {st.hasBus && (
-                          <span title="مشترك بالمواصلات" className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 text-[10px] font-semibold border border-orange-200/50">
-                            <Bus className="w-3 h-3" />
-                            <span>باص</span>
+                          <span 
+                            title={`مشترك بالمواصلات: ${st.busNumber || 'حافلة المدرسة'} | محطة: ${st.busStopName || st.residencePlace} | الحالة: ${st.busTripStatus || 'في الانتظار'}`} 
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-semibold border border-amber-200"
+                          >
+                            <Bus className="w-3 h-3 text-amber-600" />
+                            <span>باص {st.busTripStatus ? `(${st.busTripStatus})` : ''}</span>
                           </span>
                         )}
                       </div>
@@ -1012,7 +1015,18 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     <input
                       type="checkbox"
                       checked={formData.hasBus}
-                      onChange={(e) => setFormData({ ...formData, hasBus: e.target.checked })}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData({ 
+                          ...formData, 
+                          hasBus: checked,
+                          busId: checked ? (formData.busId || 'bus-1') : undefined,
+                          busNumber: checked ? (formData.busNumber || 'حافلة رقم 1 (لوحة 492180)') : undefined,
+                          busTripStatus: checked ? (formData.busTripStatus || 'في انتظار الحافلة') : undefined,
+                          busPickupTime: checked ? (formData.busPickupTime || '07:15 ص') : undefined,
+                          busDropoffTime: checked ? (formData.busDropoffTime || '02:30 م') : undefined
+                        });
+                      }}
                       className="w-4 h-4 text-purple-600 rounded"
                     />
                     <span>خدمة المواصلات</span>
@@ -1028,6 +1042,114 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     <span>تسجيل في syobis</span>
                   </label>
                 </div>
+
+                {formData.hasBus && (
+                  <div className="col-span-full bg-orange-50/80 p-3.5 rounded-xl border border-orange-200 mt-2 space-y-3">
+                    <div className="font-bold text-orange-950 text-xs flex items-center gap-1.5">
+                      <Bus className="w-4 h-4 text-orange-600" />
+                      <span>تفاصيل النقل والمواصلات ومتابعة سيارة الطالب:</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">الحافلة المخصصة</label>
+                        <select
+                          value={formData.busId || 'bus-1'}
+                          onChange={(e) => {
+                            const bId = e.target.value;
+                            let routeName = 'خط المزة - الفيلات الغربية - كفرسوسة';
+                            let busNum = 'حافلة رقم 1 (لوحة 492180)';
+                            let drvName = 'أ. أبو أحمد الحمصي';
+                            let drvPhone = '+963 944 321 654';
+                            let supName = 'المشرفة هبة العلي';
+                            let supPhone = '+963 933 789 123';
+                            if (bId === 'bus-2') {
+                              routeName = 'خط المالكي - أبو رمانة - الشعلان';
+                              busNum = 'حافلة رقم 2 (لوحة 815342)';
+                              drvName = 'أ. ياسر الديراني';
+                              drvPhone = '+963 955 432 987';
+                              supName = 'المشرفة سناء النجار';
+                              supPhone = '+963 988 654 321';
+                            } else if (bId === 'car-3') {
+                              routeName = 'خط مشروع دمر - توسع المشروع - الربوة';
+                              busNum = 'سيارة فان VIP رقم 3 (لوحة 932415)';
+                              drvName = 'أ. طارق الشامي';
+                              drvPhone = '+963 999 123 456';
+                              supName = 'المشرف عمر الخالد';
+                              supPhone = '+963 966 789 456';
+                            }
+                            setFormData({
+                              ...formData,
+                              busId: bId,
+                              busRouteName: routeName,
+                              busNumber: busNum,
+                              busDriverName: drvName,
+                              busDriverPhone: drvPhone,
+                              busSupervisorName: supName,
+                              busSupervisorPhone: supPhone,
+                            });
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs"
+                        >
+                          <option value="bus-1">حافلة رقم 1 (المزة - كفرسوسة)</option>
+                          <option value="bus-2">حافلة رقم 2 (المالكي - الشعلان)</option>
+                          <option value="car-3">سيارة فان VIP رقم 3 (مشروع دمر - الربوة)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">نقطة ومحطة التوقف</label>
+                        <input
+                          type="text"
+                          placeholder="مثلاً: أمام جامع الشافعي"
+                          value={formData.busStopName || ''}
+                          onChange={(e) => setFormData({ ...formData, busStopName: e.target.value })}
+                          className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">حالة ركوب الطالب</label>
+                        <select
+                          value={formData.busTripStatus || 'في انتظار الحافلة'}
+                          onChange={(e) => setFormData({ ...formData, busTripStatus: e.target.value as any })}
+                          className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs"
+                        >
+                          <option value="في انتظار الحافلة">في انتظار الحافلة</option>
+                          <option value="صعد إلى السيارة">صعد إلى السيارة</option>
+                          <option value="وصل إلى المدرسة">وصل إلى المدرسة</option>
+                          <option value="في طريق العودة للمنزل">في طريق العودة للمنزل</option>
+                          <option value="وصل للمنزل بأمان">وصل للمنزل بأمان</option>
+                          <option value="غائب">غائب اليوم</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">موعد الركوب الصباحي</label>
+                        <input
+                          type="text"
+                          placeholder="07:15 ص"
+                          value={formData.busPickupTime || '07:15 ص'}
+                          onChange={(e) => setFormData({ ...formData, busPickupTime: e.target.value })}
+                          className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">موعد النزول المسائي</label>
+                        <input
+                          type="text"
+                          placeholder="02:30 م"
+                          value={formData.busDropoffTime || '02:30 م'}
+                          onChange={(e) => setFormData({ ...formData, busDropoffTime: e.target.value })}
+                          className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* SECTION 4: Financial Data & Installments (المالية الخاصة بالطالب والشيك المالي) */}

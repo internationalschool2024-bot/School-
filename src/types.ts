@@ -58,6 +58,19 @@ export interface Student {
   hasBus: boolean;
   syobis: boolean;
 
+  // خدمة المواصلات وتتبع الحافلة / السيارة
+  busId?: string; // معرف الحافلة أو السيارة المخصصة
+  busRouteName?: string; // اسم خط السير
+  busNumber?: string; // رقم الحافلة / لوحة السيارة
+  busDriverName?: string; // اسم السائق
+  busDriverPhone?: string; // رقم هاتف السائق
+  busSupervisorName?: string; // اسم المشرفة المرافقة
+  busSupervisorPhone?: string; // هاتف المشرفة
+  busStopName?: string; // نقطة التوقف أو عنوان الركوب
+  busTripStatus?: 'في انتظار الحافلة' | 'صعد إلى السيارة' | 'وصل إلى المدرسة' | 'في طريق العودة للمنزل' | 'وصل للمنزل بأمان' | 'غائب';
+  busPickupTime?: string; // موعد ركوب الصباح
+  busDropoffTime?: string; // موعد نزول المساء
+
   // المالية
   booksFee: number; // رسوم الكتب $
   uniformFee: number; // رسوم اللباس $
@@ -206,6 +219,56 @@ export interface Announcement {
   actionTab?: string;
 }
 
+export interface TransportStop {
+  id: string;
+  name: string;
+  studentId?: string;
+  studentName?: string;
+  lat: number;
+  lng: number;
+  time: string;
+  status: 'passed' | 'current' | 'upcoming';
+  type: 'pickup' | 'dropoff' | 'school';
+  address?: string;
+}
+
+export interface TransportVehicle {
+  id: string;
+  plateNumber: string;
+  vehicleName: string;
+  vehicleType: 'باص كبير 30 راكب' | 'حافلة متوسطة 20 راكب' | 'فان مدرسي 12 راكب' | 'سيارة ركاب VIP 6 ركاب';
+  driverName: string;
+  driverPhone: string;
+  supervisorName: string;
+  supervisorPhone: string;
+  routeName: string;
+  capacity: number;
+  status: 'في الطريق إلى المدرسة' | 'في طريق العودة للمنازل' | 'في مرآب المدرسة' | 'متوقف للاستراحة' | 'في انتظار انطلاق الرحلة';
+  currentSpeedKmH: number;
+  currentLocationName: string;
+  currentLat: number;
+  currentLng: number;
+  heading: number; // بالدرجات 0 - 360
+  progress: number; // 0 - 100%
+  assignedStudentIds: string[];
+  stops: TransportStop[];
+  tripDirection: 'morning_to_school' | 'afternoon_to_home';
+  lastUpdated: string;
+  estimatedArrivalToSchool?: string;
+}
+
+export interface BusAttendanceLog {
+  id: string;
+  studentId: string;
+  studentName: string;
+  vehicleId: string;
+  date: string;
+  tripType: 'morning' | 'afternoon';
+  status: 'boarded' | 'arrived' | 'absent' | 'waiting';
+  time: string;
+  note?: string;
+}
+
 export type TabType = 
   | 'dashboard' 
   | 'students' 
@@ -214,7 +277,9 @@ export type TabType =
   | 'finances' 
   | 'grades' 
   | 'followup' 
+  | 'transport'
   | 'sms' 
   | 'portal' 
   | 'settings';
+
 

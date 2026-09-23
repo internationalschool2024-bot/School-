@@ -8,6 +8,7 @@ import {
   INITIAL_SMS_LOGS,
   INITIAL_SCHEDULE,
   INITIAL_ANNOUNCEMENTS,
+  INITIAL_VEHICLES,
   SCHOOL_INFO
 } from './data/mockData';
 import { 
@@ -19,6 +20,7 @@ import {
   SmsMessageLog,
   WeeklyScheduleItem,
   Announcement,
+  TransportVehicle,
   TabType 
 } from './types';
 import { Dashboard } from './components/Dashboard';
@@ -29,6 +31,7 @@ import { GradesManager } from './components/GradesManager';
 import { FollowUpManager } from './components/FollowUpManager';
 import { SmsNotificationCenter } from './components/SmsNotificationCenter';
 import { ParentPortal } from './components/ParentPortal';
+import { TransportManager } from './components/TransportManager';
 import { WeeklyScheduleManager } from './components/WeeklyScheduleManager';
 import { SettingsManager } from './components/SettingsManager';
 import { PrintDocumentsModal, PrintableDocType } from './components/PrintDocumentsModal';
@@ -59,7 +62,8 @@ import {
   Check,
   Clock,
   Sparkles,
-  ChevronLeft
+  ChevronLeft,
+  Bus
 } from 'lucide-react';
 
 export default function App() {
@@ -166,6 +170,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
   });
 
+  const [vehicles, setVehicles] = useState<TransportVehicle[]>(() => {
+    const saved = localStorage.getItem('school_transport_vehicles');
+    return saved ? JSON.parse(saved) : INITIAL_VEHICLES;
+  });
+
   const [customSchoolInfo, setCustomSchoolInfo] = useState(() => {
     const saved = localStorage.getItem('school_custom_info');
     return saved ? JSON.parse(saved) : { ...SCHOOL_INFO };
@@ -203,6 +212,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('school_announcements', JSON.stringify(announcements));
   }, [announcements]);
+
+  useEffect(() => {
+    localStorage.setItem('school_transport_vehicles', JSON.stringify(vehicles));
+  }, [vehicles]);
 
   // Modal Print state
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
@@ -250,6 +263,9 @@ export default function App() {
     }
     if (backup.announcements && Array.isArray(backup.announcements)) {
       setAnnouncements(backup.announcements);
+    }
+    if (backup.vehicles && Array.isArray(backup.vehicles)) {
+      setVehicles(backup.vehicles);
     }
     if (backup.schoolInfo && typeof backup.schoolInfo === 'object') {
       setCustomSchoolInfo(backup.schoolInfo);
@@ -439,6 +455,7 @@ export default function App() {
     { id: 'teachers' as TabType, label: 'الكادر التدريسي', icon: GraduationCap },
     { id: 'schedule' as TabType, label: 'الجدول الأسبوعي', icon: Calendar },
     { id: 'followup' as TabType, label: 'الغياب والحضور', icon: CheckSquare },
+    { id: 'transport' as TabType, label: 'المواصلات والتتبع', icon: Bus, highlight: true },
     { id: 'finances' as TabType, label: 'الأقساط والمالية', icon: DollarSign },
     { id: 'portal' as TabType, label: 'التقارير والإحصائيات', icon: BarChart3 },
     { id: 'sms' as TabType, label: 'الإعلانات والرسائل', icon: MessageSquare, badge: announcements.length },
@@ -709,6 +726,7 @@ export default function App() {
               smsLogs={smsLogs}
               schedule={schedule}
               announcements={announcements}
+              vehicles={vehicles}
               schoolInfo={customSchoolInfo}
               onNavigate={(tab) => handleTabChange(tab)}
               onPrintStudent={handlePrintStudentForm}
@@ -812,6 +830,17 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'transport' && (
+            <TransportManager
+              students={students}
+              vehicles={vehicles}
+              onUpdateVehicles={setVehicles}
+              onUpdateStudent={handleSaveStudent}
+              onSendSms={handleSendSms}
+              schoolInfo={customSchoolInfo}
+            />
+          )}
+
           {activeTab === 'portal' && (
             <ParentPortal
               students={students}
@@ -819,6 +848,7 @@ export default function App() {
               attendanceRecords={attendanceRecords}
               followUpReports={followUpReports}
               smsLogs={smsLogs}
+              vehicles={vehicles}
               onPrintReportCard={handlePrintReportCard}
               onPrintCheck={handlePrintCheck}
               initialStudentId={urlStudentId}

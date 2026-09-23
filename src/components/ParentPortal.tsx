@@ -24,13 +24,18 @@ import {
   Send,
   Share2,
   RefreshCw,
-  X
+  X,
+  Bus,
+  Navigation,
+  MapPin,
+  Gauge
 } from 'lucide-react';
-import { Student, StudentReportCard, AttendanceRecord, PeriodicFollowUp, LessonAssignment, SmsMessageLog } from '../types';
+import { Student, StudentReportCard, AttendanceRecord, PeriodicFollowUp, LessonAssignment, SmsMessageLog, TransportVehicle } from '../types';
 import { formatCurrency, formatArabicDate, createWhatsAppUrl } from '../utils/helpers';
-import { SCHOOL_INFO, INITIAL_LESSONS } from '../data/mockData';
+import { SCHOOL_INFO, INITIAL_LESSONS, INITIAL_VEHICLES } from '../data/mockData';
 import { SchoolLogo } from './SchoolLogo';
 import { buildPortalUrl, copyToClipboard, syncUrlWithTab } from '../utils/urlHelper';
+import { TransportMap } from './TransportMap';
 
 interface ParentPortalProps {
   students: Student[];
@@ -38,6 +43,7 @@ interface ParentPortalProps {
   attendanceRecords: AttendanceRecord[];
   followUpReports: PeriodicFollowUp[];
   smsLogs: SmsMessageLog[];
+  vehicles?: TransportVehicle[];
   onPrintReportCard: (student: Student) => void;
   onPrintCheck: (student: Student) => void;
   initialStudentId?: string;
@@ -50,6 +56,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
   attendanceRecords,
   followUpReports,
   smsLogs,
+  vehicles,
   onPrintReportCard,
   onPrintCheck,
   initialStudentId,
@@ -57,7 +64,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
 }) => {
   const [pinCode, setPinCode] = useState<string>(initialStudentId || '');
   const [activeStudent, setActiveStudent] = useState<Student | null>(null);
-  const [activeTab, setActiveTab] = useState<'attendance' | 'lessons' | 'grades' | 'notices' | 'finances'>('attendance');
+  const [activeTab, setActiveTab] = useState<'attendance' | 'lessons' | 'grades' | 'notices' | 'finances' | 'transport'>('attendance');
   const [copiedLink, setCopiedLink] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -433,13 +440,14 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
 
             </div>
 
-            {/* 5 Main Sub-Tabs with Circular Icons */}
-            <div className="grid grid-cols-5 gap-2 mt-6 pt-4 border-t border-white/15 text-center">
+            {/* 6 Main Sub-Tabs with Circular Icons */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-6 pt-4 border-t border-white/15 text-center">
               {[
                 { id: 'attendance' as const, label: 'حضوره', icon: Calendar },
                 { id: 'lessons' as const, label: 'دروسه', icon: BookOpen },
                 { id: 'grades' as const, label: 'نتائجه', icon: Award },
                 { id: 'finances' as const, label: 'الأقساط', icon: DollarSign },
+                { id: 'transport' as const, label: 'السيارة GPS', icon: Bus },
                 { id: 'notices' as const, label: 'إشعارات', icon: Bell },
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -737,6 +745,175 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                     ))
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* 6. LIVE STUDENT TRANSPORTATION & CAR GPS VIEW */}
+            {activeTab === 'transport' && (
+              <div className="space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <Bus className="w-5 h-5 text-blue-600" />
+                      <span>متابعة موقع سيارة وباص الطالب لحظياً (GPS)</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      تتبع الحافلة مباشرة على الخريطة ومعرفة موعد الوصول ونقطة الركوب
+                    </p>
+                  </div>
+
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>اتصال حي بنظام التتبع الملاحي</span>
+                  </span>
+                </div>
+
+                {activeStudent.hasBus ? (
+                  (() => {
+                    const pool = (vehicles && vehicles.length > 0 ? vehicles : INITIAL_VEHICLES);
+                    const studentVehicle = pool.find(v => v.id === activeStudent.busId) || pool[0];
+
+                    return (
+                      <div className="space-y-4">
+                        
+                        {/* Status Alert Banner */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+                              <Navigation className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div>
+                              <div className="text-xs text-slate-500">حالة ركوب الطالب بالسيارة اليوم:</div>
+                              <div className="text-sm font-black text-blue-950 mt-0.5">
+                                {activeStudent.busTripStatus || 'في انتظار الحافلة'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs">
+                            <div className="bg-white/80 px-3 py-1.5 rounded-xl border border-blue-100">
+                              <span className="text-slate-400 block text-[10px]">موعد الصباح</span>
+                              <span className="font-bold text-slate-800 font-mono">{activeStudent.busPickupTime || '07:15 ص'}</span>
+                            </div>
+                            <div className="bg-white/80 px-3 py-1.5 rounded-xl border border-blue-100">
+                              <span className="text-slate-400 block text-[10px]">موعد المساء</span>
+                              <span className="font-bold text-slate-800 font-mono">{activeStudent.busDropoffTime || '02:30 م'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Interactive Live Map */}
+                        {studentVehicle && (
+                          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+                            <TransportMap
+                              vehicle={studentVehicle}
+                              selectedStudent={activeStudent}
+                              className="h-[380px]"
+                              isSimulating={true}
+                            />
+                          </div>
+                        )}
+
+                        {/* Vehicle & Contacts Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          
+                          {/* Driver Info */}
+                          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold block">سائق الحافلة</span>
+                              <div className="font-bold text-slate-900 mt-0.5">
+                                {activeStudent.busDriverName || studentVehicle?.driverName || 'أ. سائق الحافلة'}
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-mono mt-0.5" dir="ltr">
+                                {activeStudent.busDriverPhone || studentVehicle?.driverPhone || '—'}
+                              </div>
+                            </div>
+
+                            {(activeStudent.busDriverPhone || studentVehicle?.driverPhone) && (
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href={`tel:${activeStudent.busDriverPhone || studentVehicle?.driverPhone}`}
+                                  className="p-2.5 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors"
+                                  title="اتصال هاتفي بالسائق"
+                                >
+                                  <Phone className="w-4 h-4" />
+                                </a>
+                                <a
+                                  href={`https://wa.me/${(activeStudent.busDriverPhone || studentVehicle?.driverPhone || '').replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors"
+                                  title="مراسلة عبر واتساب"
+                                >
+                                  <Send className="w-4 h-4" />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Supervisor Info */}
+                          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold block">المشرفة المرافقة بالسيارة</span>
+                              <div className="font-bold text-slate-900 mt-0.5">
+                                {activeStudent.busSupervisorName || studentVehicle?.supervisorName || 'المشرفة'}
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-mono mt-0.5" dir="ltr">
+                                {activeStudent.busSupervisorPhone || studentVehicle?.supervisorPhone || '—'}
+                              </div>
+                            </div>
+
+                            {(activeStudent.busSupervisorPhone || studentVehicle?.supervisorPhone) && (
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href={`tel:${activeStudent.busSupervisorPhone || studentVehicle?.supervisorPhone}`}
+                                  className="p-2.5 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors"
+                                  title="اتصال هاتفي بالمشرفة"
+                                >
+                                  <Phone className="w-4 h-4" />
+                                </a>
+                                <a
+                                  href={`https://wa.me/${(activeStudent.busSupervisorPhone || studentVehicle?.supervisorPhone || '').replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors"
+                                  title="مراسلة عبر واتساب"
+                                >
+                                  <Send className="w-4 h-4" />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+
+                        {/* Location Details */}
+                        <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+                          <MapPin className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold">نقطة تجمع ومحطة الطالب: </span>
+                            <span>{activeStudent.busStopName || activeStudent.detailedAddress || activeStudent.residencePlace}</span>
+                            <div className="text-[11px] text-amber-700 mt-1">
+                              * يرجى التواجد عند نقطة التجمع قبل 5 دقائق من موعد وصول الحافلة المحدد حرصاً على عدم التأخر.
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                      <Bus className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-bold text-slate-800 text-sm">خدمة النقل والمواصلات غير مفعلة لهذا الطالب</h4>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                      هذا الطالب غير مسجل حالياً في خدمة الحافلات المدرسية اليومية. إذا كنتم ترغبون في الاشتراك بالخدمة وتخصيص حافلة ومتابعة رحلات الطالب المباشرة، يرجى مراجعة إدارة النقل في المدرسة.
+                    </p>
+                  </div>
+                )}
+
               </div>
             )}
 

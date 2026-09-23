@@ -28,7 +28,9 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Megaphone,
-  BellRing
+  BellRing,
+  Bus,
+  Navigation
 } from 'lucide-react';
 import { 
   Student, 
@@ -37,12 +39,13 @@ import {
   SmsMessageLog, 
   WeeklyScheduleItem, 
   Announcement,
-  TabType 
+  TabType,
+  TransportVehicle
 } from '../types';
 import { formatCurrency, formatArabicDate } from '../utils/helpers';
-import { SCHOOL_INFO } from '../data/mockData';
-import { buildPortalUrl } from '../utils/urlHelper';
+import { SCHOOL_INFO, INITIAL_VEHICLES } from '../data/mockData';
 import { SchoolLogo, DeveloperBadge } from './SchoolLogo';
+import { buildPortalUrl } from '../utils/urlHelper';
 
 interface DashboardProps {
   students: Student[];
@@ -51,6 +54,7 @@ interface DashboardProps {
   smsLogs: SmsMessageLog[];
   schedule: WeeklyScheduleItem[];
   announcements: Announcement[];
+  vehicles?: TransportVehicle[];
   schoolInfo?: typeof SCHOOL_INFO;
   onNavigate: (tab: TabType) => void;
   onPrintStudent: (student: Student) => void;
@@ -168,6 +172,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       iconBg: 'bg-[#06B6D4]/10 text-[#0891B2] border-cyan-200',
       icon: CheckSquare,
       colorTheme: 'hover:border-cyan-400 hover:shadow-cyan-500/10',
+    },
+    {
+      id: 'transport' as TabType,
+      title: 'المواصلات وتتبع السيارات',
+      subtitle: 'متابعة موقع الطالب بالسيارة GPS',
+      iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
+      icon: Bus,
+      colorTheme: 'hover:border-emerald-400 hover:shadow-emerald-500/10',
     },
     {
       id: 'portal' as TabType,
